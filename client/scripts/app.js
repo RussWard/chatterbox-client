@@ -1,6 +1,7 @@
 var app = {};
 
 app.friends = [];
+app.roomList = [];
 
 app.init = function(){
   app.fetch();
@@ -49,11 +50,21 @@ app.fetch = function(args) {
          var messagesArray = cleanData.results;
 
          for (var i = 0; i < messagesArray.length; i++) {
+          //  console.log("Message:", messagesArray[i]);
            var username = messagesArray[i].username;
            var userLink = '<button class=' + username + '>' + username + '</button>';
+           var roomname = messagesArray[i].roomname;
+
+           if (!app.roomList.includes(roomname)) {
+             app.roomList.push(roomname);
+             var room = '<option value="' + roomname + '">' + roomname + '</option>';
+             $('select').append(room);
+           };
+
            $('#chats').append('<p>'+userLink+'  '+messagesArray[i].text+'</p>');
          }
-         $('button').on('click', app.handleUsernameClick.bind(event));
+         $('button').on('click', app.handleUsernameClick);
+
          $('form').on('click', '#sendMessageButton', function(event) {
            event.preventDefault();
            var name = $('#input-username').val();
@@ -64,6 +75,8 @@ app.fetch = function(args) {
            app.send(app.renderMessage(message));
 
          });
+
+         $('select')
       },
       error: function(data) {
         console.error('chatterbox: Failed to recieve messages', data);
@@ -118,10 +131,15 @@ app.sendButton = function() {
 
 app.secure = function(obj) {
   for (var i = 0; i < obj.results.length; i++) {
+    console.log("Thing", obj.results[i].username === undefined);
     if (obj.results[i].username === undefined) {
+      console.log("Should get here", obj.results[i])
       obj.results.splice(i, 1);
+      i--;
+      console.log(obj.results[i])
     } else  if (obj.results[i].username.match('<.*>')) {
       obj.results.splice(i, 1);
+      i--;
     }
     // if (obj.results[i].text.match('<.*>')) {
     //   obj.results.splice(i, 1);
@@ -139,6 +157,7 @@ app.secure = function(obj) {
     //   obj.results.splice(i, 1);
     // }
   }
+  console.log("After filter:", obj.results.slice())
   return obj;
 };
 
